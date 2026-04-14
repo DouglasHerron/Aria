@@ -11,7 +11,10 @@ import {
   type SetupEnvKey,
 } from "@/lib/merge-env-local";
 
+const IS_VERCEL = !!process.env.VERCEL;
+
 function setupApiAllowed(): boolean {
+  if (IS_VERCEL) return false; // Vercel filesystem is read-only; use Vercel dashboard instead
   if (process.env.NODE_ENV !== "production") return true;
   return process.env.SETUP_WIZARD_ENABLED === "true";
 }
@@ -26,6 +29,13 @@ function isLocalhost(req: NextRequest): boolean {
 }
 
 export async function GET() {
+  if (IS_VERCEL) {
+    // Return a vercelMode response so the UI can show the checklist instead of the form
+    return NextResponse.json({
+      vercelMode: true,
+      missingCore: getMissingCoreEnvKeys(),
+    });
+  }
   if (!setupApiAllowed()) {
     return NextResponse.json({ error: "Setup API disabled" }, { status: 403 });
   }
@@ -36,6 +46,16 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  if (IS_VERCEL) {
+    return NextResponse.json(
+      {
+        error:
+          "This deployment is on Vercel. Set environment variables in the Vercel dashboard (Project → Settings → Environment Variables) and redeploy.",
+        vercelMode: true,
+      },
+      { status: 400 },
+    );
+  }
   if (!setupApiAllowed()) {
     return NextResponse.json({ error: "Setup API disabled" }, { status: 403 });
   }

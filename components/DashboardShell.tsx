@@ -33,7 +33,13 @@ export function DashboardShell({
           />
           {demoMode ? (
             <div className="border-b border-yellow-500/30 bg-yellow-500/20 px-4 py-1 text-center text-xs text-yellow-700 dark:text-yellow-300">
-              Demo Mode — showing sample data (writes disabled)
+              Demo Mode — showing sample data (writes disabled){" "}
+              <a
+                href="/setup"
+                className="ml-2 font-medium underline underline-offset-2 opacity-80 hover:opacity-100"
+              >
+                Connect real data →
+              </a>
             </div>
           ) : null}
           <main className="min-h-0 flex-1 overflow-auto">

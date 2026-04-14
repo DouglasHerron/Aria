@@ -13,7 +13,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import type { AIMode } from "@/types";
 
-export function MorningBriefingWidget({ aiMode }: { aiMode: AIMode }) {
+export function MorningBriefingWidget({
+  aiMode,
+  hasAiKey = true,
+}: {
+  aiMode: AIMode;
+  hasAiKey?: boolean;
+}) {
   const [briefing, setBriefing] = useState("");
   const [loading, setLoading] = useState(aiMode === "auto");
   const [error, setError] = useState("");
@@ -104,6 +110,15 @@ export function MorningBriefingWidget({ aiMode }: { aiMode: AIMode }) {
         </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-1 flex-col">
+        {!hasAiKey && aiMode !== "off" ? (
+          <div className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-3 text-sm text-amber-900 dark:text-amber-100">
+            No AI API key is configured — briefings and AI summaries are unavailable.{" "}
+            <a href="/setup" className="underline underline-offset-2">
+              Add your API key in setup.
+            </a>
+          </div>
+        ) : null}
+
         {aiMode === "off" ? (
           <div className="space-y-2">
             <p className="text-sm text-muted-foreground">

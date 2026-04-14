@@ -18,16 +18,23 @@ export default async function DashboardPage() {
   if (!session) redirect("/api/auth/signin");
 
   const settings = readSettingsFromCookies();
+  const config = getConfig();
+  const hasAiKey =
+    settings.aiProvider === "claude"
+      ? !!config.anthropicApiKey
+      : settings.aiProvider === "openai"
+        ? !!config.openaiApiKey
+        : true; // ollama has no key requirement
 
   return (
     <DashboardShell
       userName={session.user?.name ?? undefined}
       userEmail={session.user?.email ?? undefined}
       userImage={session.user?.image}
-      demoMode={getConfig().demoMode}
+      demoMode={config.demoMode}
     >
       <DashboardWidgets>
-        <MorningBriefingWidget aiMode={settings.aiMode} />
+        <MorningBriefingWidget aiMode={settings.aiMode} hasAiKey={hasAiKey} />
         <EmailWidget />
         <CalendarWidget />
         <TaskWidget />
