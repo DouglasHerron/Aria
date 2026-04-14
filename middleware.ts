@@ -1,10 +1,12 @@
+import NextAuth from "next-auth";
 import { NextResponse } from "next/server";
 
-import { auth } from "@/lib/auth";
+import { authConfig } from "@/lib/auth.config";
+
+const { auth } = NextAuth(authConfig);
 
 function coreEnvReady(): boolean {
   return !!(
-    process.env.NEXTAUTH_URL?.trim() &&
     process.env.NEXTAUTH_SECRET?.trim() &&
     process.env.GOOGLE_CLIENT_ID?.trim() &&
     process.env.GOOGLE_CLIENT_SECRET?.trim()
