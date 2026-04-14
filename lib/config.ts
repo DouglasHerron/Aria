@@ -54,11 +54,19 @@ function buildConfig(): AppConfig {
   const aiMode: AIMode =
     rawAiMode === "off" ? "off" : rawAiMode === "auto" ? "auto" : "on_demand";
 
+  // NEXTAUTH_URL: fall back to Vercel's auto-injected deployment URL so the
+  // app doesn't crash on cold start before the user sets it in the dashboard.
+  // NextAuth v5 uses trustHost:true and infers the host from request headers,
+  // so an empty string here is safe — sign-in will still work.
+  const nextAuthUrl =
+    process.env.NEXTAUTH_URL ??
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "");
+
   return {
-    nextAuthUrl: requireEnv("NEXTAUTH_URL"),
-    nextAuthSecret: requireEnv("NEXTAUTH_SECRET"),
-    googleClientId: requireEnv("GOOGLE_CLIENT_ID"),
-    googleClientSecret: requireEnv("GOOGLE_CLIENT_SECRET"),
+    nextAuthUrl,
+    nextAuthSecret: optionalEnv("NEXTAUTH_SECRET", ""),
+    googleClientId: optionalEnv("GOOGLE_CLIENT_ID", ""),
+    googleClientSecret: optionalEnv("GOOGLE_CLIENT_SECRET", ""),
 
     aiProvider,
     aiMode,
@@ -113,4 +121,18 @@ export function validateAIConfig(): void {
       "[ARIA Config] AI_PROVIDER=openai but OPENAI_API_KEY is not set",
     );
   }
+}
+
+/** Returns the list of core required vars that are currently missing. */
+export function getMissingRequiredVars(): string[] {
+  const missing: string[] = [];
+  if (!process.env.NEXTAUTH_SECRET) missing.push("NEXTAUTH_SECRET");
+  if (!process.env.GOOGLE_CLIENT_ID) missing.push("GOOGLE_CLIENT_ID");
+  if (!process.env.GOOGLE_CLIENT_SECRET) missing.push("GOOGLE_CLIENT_SECRET");
+  return missing;
+}
+
+/** True when the minimum vars needed to boot the app are all present. */
+export function isCoreConfigured(): boolean {
+  return getMissingRequiredVars().length === 0;
 }

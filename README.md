@@ -1,8 +1,25 @@
 # ARIA — AI-Powered Personal Assistant Dashboard
 
-[Architecture](#architecture) · [Setup](#setup) · [Demo-safe mode](#demo-safe-mode)
+[Deploy to Vercel](#deploy-to-vercel) · [Architecture](#architecture) · [Local setup](#local-setup) · [Demo mode](#demo-safe-mode)
 
 An AI orchestration layer that consolidates **email**, **calendar**, **tasks**, and **notes** into a single intelligent dashboard — built as a portfolio demonstration of applied AI process engineering.
+
+---
+
+## Deploy to Vercel
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2FYOUR_GITHUB_USERNAME%2Faria-dashboard&env=NEXTAUTH_SECRET,NEXTAUTH_URL,GOOGLE_CLIENT_ID,GOOGLE_CLIENT_SECRET,ANTHROPIC_API_KEY,DEMO_MODE&envDescription=Required%20environment%20variables%20%E2%80%94%20see%20docs%2Fdeploy-guide.md&envLink=https%3A%2F%2Fgithub.com%2FYOUR_GITHUB_USERNAME%2Faria-dashboard%2Fblob%2Fmain%2Fdocs%2Fdeploy-guide.md&project-name=aria-dashboard&repository-name=aria-dashboard)
+
+**Before clicking Deploy, complete these two steps:**
+
+1. **Get Google OAuth credentials** — you need a `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET`. See [`docs/deploy-guide.md`](docs/deploy-guide.md) for a step-by-step walkthrough.
+2. **Get an Anthropic API key** (optional) — if you want the AI layer to work with real data. Sign up at [console.anthropic.com](https://console.anthropic.com). Skip this if you're starting with `DEMO_MODE=true`.
+
+**Recommended first deploy:** set `DEMO_MODE=true` in the Vercel env vars prompt. This lets you explore the full UI with realistic sample data before connecting your real accounts. Visit `/setup` after deploy to see a configuration checklist.
+
+> **Test users:** ARIA uses a shared Google OAuth app. You must be added as a test user before signing in. After deploying, send your Vercel URL to the project owner to get added.
+
+---
 
 ## What it does
 
@@ -66,7 +83,7 @@ All model calls are routed through the abstraction in `lib/ai/`.
 | AI | Anthropic SDK, OpenAI SDK (behind a unified interface) |
 | Notes/Tasks | Obsidian vault filesystem |
 
-## Setup
+## Local setup
 
 **Requirements:** Node.js **18.18+** (see [`.nvmrc`](.nvmrc); use `nvm use` if you use nvm).
 
@@ -87,7 +104,7 @@ All model calls are routed through the abstraction in `lib/ai/`.
 
 **Google Auth and “GCP”:** Gmail and Google Calendar access require an OAuth client registered in Google Cloud. That is **some** Google Cloud project—not necessarily the original author’s. Self-hosted installs should use **their own** project. A shared client id/secret in a public repo is unsafe and impractical for restricted Gmail scopes. MCP or other wrappers do not remove that requirement.
 
-**Setup wizard limits:** `POST /api/setup` is allowed in **development** by default. On **production** builds it is disabled unless `SETUP_WIZARD_ENABLED=true` (and should only be used from **localhost**). Hosted deployments (e.g. Vercel) should use the host’s environment variable UI, not file writes from the browser.
+**Setup wizard:** On **Vercel / production**, `/setup` shows a read-only configuration checklist with links to the Vercel dashboard — it does not write files. On **localhost dev**, the wizard writes `.env.local` directly.
 
 ## Demo-safe mode
 

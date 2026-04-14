@@ -3,8 +3,8 @@
  * Do not import getConfig() from here (avoid circular deps).
  */
 
+// NEXTAUTH_URL is optional on Vercel (falls back to VERCEL_URL in lib/config.ts)
 const CORE_DASHBOARD_KEYS = [
-  "NEXTAUTH_URL",
   "NEXTAUTH_SECRET",
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",

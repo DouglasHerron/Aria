@@ -88,6 +88,9 @@ export function CalendarWidget() {
       setError(null);
       try {
         const res = await fetch("/api/calendar/events");
+        if (res.status === 401) {
+          throw Object.assign(new Error("auth"), { status: 401 });
+        }
         const data = (await res.json()) as {
           events?: CalendarEvent[];
           agendaNarrative?: string | null;
@@ -106,7 +109,8 @@ export function CalendarWidget() {
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Something went wrong");
+          const is401 = e instanceof Error && (e as { status?: number }).status === 401;
+          setError(is401 ? "__auth__" : (e instanceof Error ? e.message : "Something went wrong"));
         }
       } finally {
         if (!cancelled) {
@@ -191,7 +195,21 @@ export function CalendarWidget() {
           </div>
         )}
         {!loading && error && (
-          <p className="text-sm text-destructive">{error}</p>
+          error === "__auth__" ? (
+            <div className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-3">
+              <p className="text-sm text-amber-900 dark:text-amber-100">
+                Your Google session expired or Calendar access was not granted.
+              </p>
+              <a
+                href="/api/auth/signout"
+                className="inline-block rounded-md border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-500/20 dark:text-amber-100"
+              >
+                Sign out and sign back in
+              </a>
+            </div>
+          ) : (
+            <p className="text-sm text-destructive">{error}</p>
+          )
         )}
         {!loading && !error && agendaNarrative && (
           <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-sm text-foreground/90">

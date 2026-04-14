@@ -14,8 +14,9 @@ import {
 } from "@/components/ui/card";
 
 type SetupStatus = {
-  allowedKeys: string[];
+  allowedKeys?: string[];
   missingCore: string[];
+  vercelMode?: boolean;
 };
 
 function randomBase64Secret(): string {
@@ -51,7 +52,174 @@ function Field({
   );
 }
 
-export function SetupWizardClient() {
+// ─── Vercel mode: read-only configuration checklist ─────────────────────────
+
+function CopyButton({ value }: { value: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={() => {
+        void navigator.clipboard.writeText(value).then(() => {
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        });
+      }}
+      className="ml-2 rounded bg-muted px-2 py-0.5 text-xs font-medium hover:bg-muted/80"
+    >
+      {copied ? "Copied!" : "Copy"}
+    </button>
+  );
+}
+
+const REQUIRED_VARS: { key: string; label: string; hint: string }[] = [
+  {
+    key: "NEXTAUTH_SECRET",
+    label: "NEXTAUTH_SECRET",
+    hint: 'Generate with: openssl rand -base64 32 (or any random 32+ character string)',
+  },
+  {
+    key: "GOOGLE_CLIENT_ID",
+    label: "GOOGLE_CLIENT_ID",
+    hint: "OAuth 2.0 Client ID from Google Cloud Console",
+  },
+  {
+    key: "GOOGLE_CLIENT_SECRET",
+    label: "GOOGLE_CLIENT_SECRET",
+    hint: "OAuth 2.0 Client Secret from Google Cloud Console",
+  },
+];
+
+const OPTIONAL_VARS: { key: string; label: string; hint: string }[] = [
+  {
+    key: "ANTHROPIC_API_KEY",
+    label: "ANTHROPIC_API_KEY",
+    hint: "Required for AI features (email summaries, briefing, etc.)",
+  },
+  {
+    key: "NEXTAUTH_URL",
+    label: "NEXTAUTH_URL",
+    hint: "Your deployment URL, e.g. https://aria-xyz.vercel.app — set this after first deploy",
+  },
+  {
+    key: "DEMO_MODE",
+    label: "DEMO_MODE",
+    hint: 'Set to "true" to explore with sample data (no real credentials needed)',
+  },
+];
+
+function VercelChecklist({
+  missingCore,
+  deploymentUrl,
+}: {
+  missingCore: string[];
+  deploymentUrl: string;
+}) {
+  const callbackUri = deploymentUrl
+    ? `${deploymentUrl}/api/auth/callback/google`
+    : "(deploy first, then copy this URL)";
+
+  const allConfigured = missingCore.length === 0;
+
+  return (
+    <div className="space-y-6">
+      {allConfigured ? (
+        <div className="rounded-md border border-green-500/40 bg-green-500/10 px-4 py-3 text-sm text-green-900 dark:text-green-100">
+          All required variables are set. If you just updated them, redeploy for changes to take effect.
+        </div>
+      ) : (
+        <div className="rounded-md border border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-100">
+          <strong>Missing required variables:</strong>{" "}
+          <code>{missingCore.join(", ")}</code>
+          <p className="mt-1">
+            Add them in{" "}
+            <a
+              href="https://vercel.com/dashboard"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline underline-offset-2"
+            >
+              Vercel → Project → Settings → Environment Variables
+            </a>
+            , then redeploy.
+          </p>
+        </div>
+      )}
+
+      <div className="rounded-md border bg-card p-4 space-y-4">
+        <h2 className="text-base font-semibold">Required variables</h2>
+        {REQUIRED_VARS.map(({ key, label, hint }) => {
+          const isMissing = missingCore.includes(key);
+          return (
+            <div key={key} className="flex items-start gap-3">
+              <span
+                className={`mt-0.5 text-sm font-medium ${isMissing ? "text-amber-600 dark:text-amber-400" : "text-green-600 dark:text-green-400"}`}
+              >
+                {isMissing ? "✗" : "✓"}
+              </span>
+              <div>
+                <code className="text-sm font-mono">{label}</code>
+                <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      <div className="rounded-md border bg-card p-4 space-y-4">
+        <h2 className="text-base font-semibold">Optional variables</h2>
+        {OPTIONAL_VARS.map(({ key, label, hint }) => (
+          <div key={key} className="flex items-start gap-3">
+            <span className="mt-0.5 text-sm font-medium text-muted-foreground">–</span>
+            <div>
+              <code className="text-sm font-mono">{label}</code>
+              <p className="text-xs text-muted-foreground mt-0.5">{hint}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="rounded-md border bg-card p-4 space-y-2">
+        <h2 className="text-base font-semibold">Google OAuth callback URI</h2>
+        <p className="text-sm text-muted-foreground">
+          Send this URI to the project owner to register it in the Google OAuth client, or add it
+          yourself if you manage the Google Cloud project.
+        </p>
+        <div className="flex items-center gap-2 rounded bg-muted px-3 py-2 font-mono text-sm">
+          <span className="break-all">{callbackUri}</span>
+          {deploymentUrl && <CopyButton value={callbackUri} />}
+        </div>
+      </div>
+
+      <div className="flex gap-3">
+        <a
+          href="https://vercel.com/dashboard"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
+        >
+          Open Vercel Dashboard →
+        </a>
+        <a
+          href="/api/health"
+          className="inline-flex items-center rounded-md border px-4 py-2 text-sm font-medium hover:bg-muted"
+        >
+          Check health status
+        </a>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main component ──────────────────────────────────────────────────────────
+
+export function SetupWizardClient({
+  isVercel = false,
+  deploymentUrl = "",
+}: {
+  isVercel?: boolean;
+  deploymentUrl?: string;
+}) {
   const [status, setStatus] = useState<SetupStatus | null>(null);
   const [saving, setSaving] = useState(false);
 
@@ -137,6 +305,16 @@ export function SetupWizardClient() {
     } finally {
       setSaving(false);
     }
+  }
+
+  // On Vercel: show the read-only checklist (filesystem writes are not possible)
+  if (isVercel) {
+    return (
+      <VercelChecklist
+        missingCore={status?.missingCore ?? []}
+        deploymentUrl={deploymentUrl}
+      />
+    );
   }
 
   return (

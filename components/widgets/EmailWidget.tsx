@@ -77,6 +77,9 @@ export function EmailWidget() {
       setError(null);
       try {
         const rawRes = await fetch("/api/email/threads?rawOnly=true");
+        if (rawRes.status === 401) {
+          throw Object.assign(new Error("auth"), { status: 401 });
+        }
         const rawData = (await rawRes.json()) as {
           threads?: EmailThread[];
           error?: string;
@@ -91,6 +94,9 @@ export function EmailWidget() {
 
         setEnriching(true);
         const res = await fetch("/api/email/threads");
+        if (res.status === 401) {
+          throw Object.assign(new Error("auth"), { status: 401 });
+        }
         const data = (await res.json()) as {
           threads?: EmailThread[];
           error?: string;
@@ -103,7 +109,8 @@ export function EmailWidget() {
         }
       } catch (e) {
         if (!cancelled) {
-          setError(e instanceof Error ? e.message : "Something went wrong");
+          const is401 = e instanceof Error && (e as { status?: number }).status === 401;
+          setError(is401 ? "__auth__" : (e instanceof Error ? e.message : "Something went wrong"));
         }
       } finally {
         if (!cancelled) {
@@ -205,7 +212,21 @@ export function EmailWidget() {
           </div>
         )}
         {!loading && error && (
-          <p className="text-sm text-destructive">{error}</p>
+          error === "__auth__" ? (
+            <div className="space-y-2 rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-3">
+              <p className="text-sm text-amber-900 dark:text-amber-100">
+                Your Google session expired or Gmail access was not granted.
+              </p>
+              <a
+                href="/api/auth/signout"
+                className="inline-block rounded-md border border-amber-500/40 px-3 py-1 text-xs font-medium text-amber-900 hover:bg-amber-500/20 dark:text-amber-100"
+              >
+                Sign out and sign back in
+              </a>
+            </div>
+          ) : (
+            <p className="text-sm text-destructive">{error}</p>
+          )
         )}
         {!loading && !error && threads.length === 0 && (
           <p className="text-sm text-muted-foreground">No threads in inbox.</p>

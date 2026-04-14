@@ -1,0 +1,27 @@
+{
+  "buildCommand": "npm run build",
+  "devCommand": "npm run dev",
+  "installCommand": "npm install",
+  "framework": "nextjs",
+  "env": {
+    "NEXTAUTH_SECRET": {
+      "description": "Random secret for session encryption. Generate with: openssl rand -base64 32"
+    },
+    "NEXTAUTH_URL": {
+      "description": "Your full deployment URL, e.g. https://aria-dashboard.vercel.app — you can update this after first deploy"
+    },
+    "GOOGLE_CLIENT_ID": {
+      "description": "OAuth 2.0 Client ID from Google Cloud Console. See docs/deploy-guide.md for setup."
+    },
+    "GOOGLE_CLIENT_SECRET": {
+      "description": "OAuth 2.0 Client Secret from Google Cloud Console."
+    },
+    "ANTHROPIC_API_KEY": {
+      "description": "From console.anthropic.com — leave blank if using DEMO_MODE=true"
+    },
+    "DEMO_MODE": {
+      "description": "Set to 'true' to run with sample data (no real API keys needed). Recommended for first deploy.",
+      "value": "true"
+    }
+  }
+}
