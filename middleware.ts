@@ -18,8 +18,10 @@ const withAuth = auth((req) => {
 });
 
 function coreEnvReady(): boolean {
+  // On Vercel, NEXTAUTH_URL is optional — NextAuth v5 auto-detects from VERCEL_URL.
+  const onVercel = !!process.env.VERCEL;
   return !!(
-    (process.env.NEXTAUTH_URL?.trim() || process.env.AUTH_URL?.trim()) &&
+    (onVercel || process.env.NEXTAUTH_URL?.trim() || process.env.AUTH_URL?.trim()) &&
     (process.env.NEXTAUTH_SECRET?.trim() || process.env.AUTH_SECRET?.trim()) &&
     process.env.GOOGLE_CLIENT_ID?.trim() &&
     process.env.GOOGLE_CLIENT_SECRET?.trim()
