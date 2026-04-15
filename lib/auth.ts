@@ -18,6 +18,11 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
       }
     : {}),
 
+  // Must be explicit: adding an adapter changes NextAuth's default session
+  // strategy from "jwt" to "database". We need JWT so that accessToken
+  // flows through the cookie to the client for Gmail/Calendar API calls.
+  session: { strategy: "jwt" },
+
   providers: [
     Google({
       clientId: process.env.GOOGLE_CLIENT_ID!,
