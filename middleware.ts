@@ -19,7 +19,8 @@ const withAuth = auth((req) => {
 
 function coreEnvReady(): boolean {
   return !!(
-    process.env.NEXTAUTH_SECRET?.trim() &&
+    (process.env.NEXTAUTH_URL?.trim() || process.env.AUTH_URL?.trim()) &&
+    (process.env.NEXTAUTH_SECRET?.trim() || process.env.AUTH_SECRET?.trim()) &&
     process.env.GOOGLE_CLIENT_ID?.trim() &&
     process.env.GOOGLE_CLIENT_SECRET?.trim()
   );
