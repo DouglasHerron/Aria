@@ -1,26 +1,13 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
-import { SupabaseAdapter } from "@auth/supabase-adapter";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
 
-  // Adapter is conditional so the build succeeds when SUPABASE_URL is not
-  // yet configured (e.g. local dev without Supabase, or Vercel before env
-  // vars are added). Falls back to JWT-only sessions until vars are set.
-  ...(process.env.SUPABASE_URL
-    ? {
-        adapter: SupabaseAdapter({
-          url: process.env.SUPABASE_URL,
-          secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-        }),
-      }
-    : {}),
-
-  // Must be explicit: adding an adapter changes NextAuth's default session
-  // strategy from "jwt" to "database". We need JWT so that accessToken
-  // flows through the cookie to the client for Gmail/Calendar API calls.
+  // JWT-only sessions: accessToken flows through the cookie to the client
+  // for Gmail/Calendar API calls. No database adapter needed for v1
+  // (single-user app; sessions are stateless via JWT cookie).
   session: { strategy: "jwt" },
 
   providers: [

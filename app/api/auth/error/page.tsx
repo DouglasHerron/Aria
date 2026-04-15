@@ -35,6 +35,11 @@ const ERROR_MESSAGES: Record<string, { title: string; body: string; action?: str
     body: "ARIA is not fully configured yet. Required environment variables may be missing.",
     action: "Visit /setup to see which variables are missing.",
   },
+  AdapterError: {
+    title: "Database adapter error",
+    body: "NextAuth could not connect to the database adapter. This usually means required database tables are missing or credentials are incorrect.",
+    action: "Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in your environment, or remove the adapter if using JWT-only sessions.",
+  },
 };
 
 function AuthErrorContent() {
