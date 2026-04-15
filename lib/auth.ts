@@ -1,13 +1,28 @@
 import NextAuth from "next-auth";
 import Google from "next-auth/providers/google";
+import { SupabaseAdapter } from "@auth/supabase-adapter";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
 
-  // JWT-only sessions: accessToken flows through the cookie to the client
-  // for Gmail/Calendar API calls. No database adapter needed for v1
-  // (single-user app; sessions are stateless via JWT cookie).
+  // Persist users + accounts in Supabase so sign-in history and linked
+  // OAuth accounts are durable. Sessions remain JWT (cookie-based) so
+  // accessToken is available client-side for Gmail/Calendar API calls.
+  // Requires the NextAuth schema tables to exist in Supabase — see
+  // docs/supabase-auth-schema.sql.
+  ...(process.env.SUPABASE_URL
+    ? {
+        adapter: SupabaseAdapter({
+          url: process.env.SUPABASE_URL,
+          secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        }),
+      }
+    : {}),
+
+  // Must be explicit: an adapter alone would switch the default to
+  // "database" sessions, but we need "jwt" so the accessToken round-trips
+  // through the cookie to the browser.
   session: { strategy: "jwt" },
 
   providers: [
