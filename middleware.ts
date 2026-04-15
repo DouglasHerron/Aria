@@ -34,12 +34,13 @@ export default function middleware(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // Setup and health routes are always public
+  // Setup, health, and debug routes are always public
   if (
     pathname === "/setup" ||
     pathname.startsWith("/api/setup") ||
     pathname.startsWith("/api/health") ||
-    pathname.startsWith("/api/ai/test")
+    pathname.startsWith("/api/ai/test") ||
+    pathname.startsWith("/api/debug")
   ) {
     return NextResponse.next();
   }
