@@ -6,10 +6,17 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
   secret: process.env.NEXTAUTH_SECRET,
 
-  adapter: SupabaseAdapter({
-    url: process.env.SUPABASE_URL!,
-    secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
-  }),
+  // Adapter is conditional so the build succeeds when SUPABASE_URL is not
+  // yet configured (e.g. local dev without Supabase, or Vercel before env
+  // vars are added). Falls back to JWT-only sessions until vars are set.
+  ...(process.env.SUPABASE_URL
+    ? {
+        adapter: SupabaseAdapter({
+          url: process.env.SUPABASE_URL,
+          secret: process.env.SUPABASE_SERVICE_ROLE_KEY!,
+        }),
+      }
+    : {}),
 
   providers: [
     Google({
