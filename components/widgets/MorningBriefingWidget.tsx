@@ -45,8 +45,6 @@ export function MorningBriefingWidget({
         if (!reader) throw new Error("No reader");
 
         const decoder = new TextDecoder();
-        setLoading(false);
-
         while (true) {
           const { done, value } = await reader.read();
           if (done || cancelled) break;
@@ -54,7 +52,8 @@ export function MorningBriefingWidget({
         }
       } catch {
         if (!cancelled) setError("Unable to generate briefing right now.");
-        setLoading(false);
+      } finally {
+        if (!cancelled) setLoading(false);
       }
     }
 

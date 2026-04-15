@@ -31,15 +31,5 @@ export function getAI(): AIProvider {
     return new FallbackProvider({ primary: local, secondary: hosted });
   }
 
-  if (settings.aiProvider === 'openai') {
-    return new OpenAIProvider({
-      apiKey: config.openaiApiKey,
-      model: settings.openaiModel,
-    });
-  }
-
-  return new ClaudeProvider({
-    apiKey: config.anthropicApiKey,
-    model: settings.anthropicModel,
-  });
+  return hosted;
 }
